@@ -2,7 +2,7 @@
   "id": "top.qomicex.server-manager",
   "name": "%plugin.name%",
   "icon": "fa-solid fa-server",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "minLauncherVersion": "1.0.1-beta1.0",
   "layers": [
     "l2"
