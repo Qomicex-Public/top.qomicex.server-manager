@@ -34,12 +34,16 @@
 
 ## 开发
 
-```bash
-npm install
-npm run build      # vite build → dist/
-npm test           # properties 解析器单测（node --test）
-npm run pack       # 本地签名 + 打包 release/top.qomicex.server-manager-<ver>.qplugin
+```powershell
+pnpm install
+pnpm run build     # vite build → dist/
+pnpm test          # properties 解析器单测（node --test）
+pnpm run pack      # 本地签名 + 打包 release/top.qomicex.server-manager-<ver>.qplugin
 ```
+
+> 依赖用 **pnpm** 管理（`qomicex publish` 内部也按 pnpm 构建）。`pnpm-workspace.yaml` 里
+> `allowBuilds: esbuild: true` 是必须的——pnpm v11 默认拦截依赖构建脚本，不放行会在
+> install 阶段直接 `ERR_PNPM_IGNORED_BUILDS` 退出。
 
 打包脚本（PowerShell `scripts/pack.ps1`）先调用 `scripts/sign-local.mjs` 做本地开发签名，再用 Windows 自带 bsdtar 把 `manifest.json`（zip 根）+ `dist/` + `l10n/` + 两个签名文件压为 `.qplugin`（先 `.zip` 再改名；条目名统一正斜杠，规避 Compress-Archive 的反斜杠条目问题）。版本号缺省取 `manifest.json` 的 `version`。
 
