@@ -1,0 +1,6 @@
+# 本地签名私钥（raw seed）——泄露=身份被冒用，严禁提交/外传
+dev-keys/
+build/
+node_modules/
+dist/
+release/

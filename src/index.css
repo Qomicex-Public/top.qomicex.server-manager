@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== 插件特有样式（组件库覆盖不了的：控制台日志流等）===== */
+
+/* 控制台日志框：等宽字体 + 逐行滚动 */
+.sm-console-box {
+  overflow-y: auto;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) - 4px);
+  padding: 8px 10px;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+  min-height: 120px;
+  outline: none;
+}
+.sm-console-box.paused { opacity: 0.85; }
+.sm-log-line { white-space: pre-wrap; word-break: break-all; }
+.log-err .sm-log-text, .log-stderr .sm-log-text { color: hsl(var(--destructive)); }
+.log-warn .sm-log-text { color: hsl(var(--foreground)); filter: brightness(1.3); opacity: 0.95; }
+.log-dim .sm-log-text { opacity: 0.6; }
+
+/* 进度条（搭建进度） */
+.sm-progress-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: hsl(var(--muted));
+  overflow: hidden;
+}
+.sm-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: hsl(var(--primary));
+  transition: width 0.4s ease;
+}
+
+/* 状态点 */
+.sm-dot { width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; }
+.sm-dot-ok { background: hsl(var(--primary)); }
+.sm-dot-warn { background: hsl(var(--foreground)); opacity: 0.7; }
+.sm-dot-muted { background: hsl(var(--muted-foreground)); opacity: 0.5; }

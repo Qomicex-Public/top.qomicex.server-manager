@@ -1,0 +1,51 @@
+{
+  "id": "top.qomicex.server-manager",
+  "name": "%plugin.name%",
+  "icon": "fa-solid fa-server",
+  "version": "0.4.1",
+  "minLauncherVersion": "0.1.0",
+  "layers": [
+    "l2"
+  ],
+  "l10n": "l10n",
+  "permissions": [
+    "process:manage",
+    "filesystem:read",
+    "filesystem:write",
+    "dialog:open",
+    "network:fetch",
+    "network:cors_proxy",
+    "config:read",
+    "config:write",
+    "download:manage",
+    "ui:toast",
+    "system:info",
+    "system:notification",
+    "cache:access",
+    "plugin:log"
+  ],
+  "entry": {
+    "frontend": "dist/index.html"
+  },
+  "contributes": {
+    "menuItems": [
+      {
+        "path": "/plugins/p/top.qomicex.server-manager",
+        "label": "%menu.label%",
+        "icon": "fa-solid fa-server",
+        "action": "page"
+      }
+    ],
+    "installModes": [
+      {
+        "id": "to-server",
+        "label": "%installMode.toServer.label%",
+        "description": "%installMode.toServer.description%",
+        "icon": "fa-solid fa-server",
+        "resourceKinds": [
+          "modpack"
+        ]
+      }
+    ]
+  }
+}
