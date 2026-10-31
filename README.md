@@ -21,7 +21,7 @@
 
 ## 依赖的启动器 API
 
-本插件**只使用通用 API**（不含 `shell:execute`），需要合入 [PR #302](https://github.com/Qomicex-Public/Qomicex.Tauri/pull/302) 的启动器版本：
+本插件**只使用通用 API**（不含 `shell:execute`），需要 **v1.0.1-beta1.0 及以上**的启动器（该版本合入了 [PR #302](https://github.com/Qomicex-Public/Qomicex.Tauri/pull/302) 的全部插件生态能力；商店按此版本过滤兼容性，旧版启动器的插件市场里不会出现本插件）：
 
 - 进程管理：`process.spawn/stdin/kill/alive/logs/list`
 - 文件系统：`readText/readBytes/writeText/writeBytes/deleteFile`、`extractArchive`（含 `prefix`/`stripPrefix`）、`readArchiveEntry`、`renamePath`、`listDir`
