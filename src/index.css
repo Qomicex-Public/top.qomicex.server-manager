@@ -20,7 +20,11 @@
 .sm-console-box.paused { opacity: 0.85; }
 .sm-log-line { white-space: pre-wrap; word-break: break-all; }
 .log-err .sm-log-text, .log-stderr .sm-log-text { color: hsl(var(--destructive)); }
-.log-warn .sm-log-text { color: hsl(var(--foreground)); filter: brightness(1.3); opacity: 0.95; }
+/* 警告固定用琥珀黄：主题 token 没有 warning 色，原来的 foreground + brightness
+   在暗色下只是更白，和 info 分不开（issue #1）。默认档 = 暗色主题（与宿主
+   :root 即暗色的约定一致），浅色主题单独给深一档保证对比度。 */
+.log-warn .sm-log-text { color: hsl(45 100% 62%); }
+.light .log-warn .sm-log-text { color: hsl(35 90% 34%); }
 .log-dim .sm-log-text { opacity: 0.6; }
 
 /* 进度条（搭建进度） */

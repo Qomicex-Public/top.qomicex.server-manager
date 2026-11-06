@@ -92,6 +92,7 @@
   "settings.jar": "服务端 jar（相对目录）",
   "settings.redetect": "重新检测",
   "settings.jarDetected": "检测到 {n} 个 jar，已选择 {jar}",
+  "settings.startScriptDetected": "检测到启动脚本 {script}，已按其 jar（{jar}）与内存参数填充",
   "settings.mcVersion": "Minecraft 版本",
   "settings.mcVersionPlaceholder": "如 1.21.4（用于自动选 Java）",
   "settings.java": "Java 运行时",

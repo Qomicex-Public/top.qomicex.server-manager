@@ -4,7 +4,8 @@ import { showToast, pickFile } from '../api/bridge.js'
 import { t } from '../i18n.js'
 import FaIcon from './FaIcon.jsx'
 import { listJavas, recommendJava, addCustomJava, validateJava } from '../api/java.js'
-import { detectServer, guessMcVersion } from '../api/server.js'
+import { detectServer, guessMcVersion, startPatch } from '../api/server.js'
+import { newServer } from '../api/state.js'
 
 export default function SettingsTab({ server, onSave }) {
   const [draft, setDraft] = useState(server)
@@ -29,7 +30,23 @@ export default function SettingsTab({ server, onSave }) {
       if (d.jar) set({ jar: d.jar })
       const guess = guessMcVersion(d.jar || draft.dir)
       if (guess && !draft.mcVersion) set({ mcVersion: guess })
-      showToast(t('settings.jarDetected', { n: d.candidates.length, jar: d.jar || '—' }), 'info')
+      // 启动脚本（GTNH startserver*.sh / run.bat）里写死的 jar、内存、JVM 参数以它为准，
+      // 但用户手工调过的内存 / JVM 参数不动，避免「重新检测」把调好的 -Xmx 改回去。
+      if (d.start) {
+        const patch = startPatch(d.start)
+        const defaults = newServer()
+        if (draft.xmxMb !== defaults.xmxMb) delete patch.xmxMb
+        if (draft.xmsMb !== defaults.xmsMb) delete patch.xmsMb
+        if (draft.jvmArgs) delete patch.jvmArgs
+        if (draft.serverArgs !== defaults.serverArgs) delete patch.serverArgs
+        set(patch)
+      }
+      showToast(
+        d.start
+          ? t('settings.startScriptDetected', { script: d.start.script, jar: d.jar || '—' })
+          : t('settings.jarDetected', { n: d.candidates.length, jar: d.jar || '—' }),
+        'info',
+      )
     } catch (e) {
       showToast(t('whitelist.addFailed', { msg: e.message }), 'error')
     }

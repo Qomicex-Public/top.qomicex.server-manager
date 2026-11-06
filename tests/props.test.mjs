@@ -2,7 +2,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { parseProps, serializeProps, getProp, setProp } from '../src/api/props.js'
-import { guessMcVersion } from '../src/api/server.js'
+import { guessMcVersion, parseStartScript, startPatch } from '../src/api/server.js'
 
 test('parseProps 识别 kv / 注释 / 空行并保序', () => {
   const text = [
@@ -69,4 +69,48 @@ test('guessMcVersion 从 jar/目录名提取版本', () => {
   assert.equal(guessMcVersion('fabric-server-mc.1.21-launch.0.115.jar'), '1.21')
   assert.equal(guessMcVersion('no-version-here.jar'), '')
   assert.equal(guessMcVersion('MyServer 1.19.2'), '1.19.2')
+})
+
+test('parseStartScript 解析 GTNH 启动脚本（jar + 内存 + JVM 参数）', () => {
+  const sh = [
+    '#!/bin/bash',
+    'cd "$(dirname "$0")"',
+    'java -Xms6G -Xmx6G -XX:+UseG1GC -Dfile.encoding=UTF-8 -jar minecraft_server.1.7.10.jar nogui',
+  ].join('\n')
+  const s = parseStartScript(sh)
+  assert.equal(s.jar, 'minecraft_server.1.7.10.jar')
+  assert.equal(s.xmsMb, 6144)
+  assert.equal(s.xmxMb, 6144)
+  assert.equal(s.jvmArgs, '-XX:+UseG1GC -Dfile.encoding=UTF-8')
+  assert.equal(s.serverArgs, 'nogui')
+})
+
+test('parseStartScript 处理引号路径与参数透传占位', () => {
+  const bat = 'java -Xmx2048M -jar "server jar.jar" --nogui %*'
+  const s = parseStartScript(bat)
+  assert.equal(s.jar, 'server jar.jar')
+  assert.equal(s.xmxMb, 2048)
+  assert.equal(s.serverArgs, '--nogui')
+})
+
+test('parseStartScript 忽略注释行与非 java 行', () => {
+  const sh = '# java -Xmx1G -jar wrong.jar\necho starting\nexec java -Xms512M -jar a.jar'
+  const s = parseStartScript(sh)
+  assert.equal(s.jar, 'a.jar')
+  assert.equal(s.xmsMb, 512)
+  assert.equal(s.xmxMb, null)
+})
+
+test('parseStartScript 不识别 @argfile 形式（返回 null 交给 jar 启发式）', () => {
+  assert.equal(parseStartScript('java @libraries/net/forge/win_args.txt nogui'), null)
+  assert.equal(parseStartScript(''), null)
+  assert.equal(parseStartScript(null), null)
+})
+
+test('startPatch 只带非空字段', () => {
+  assert.deepEqual(startPatch(null), {})
+  assert.deepEqual(
+    startPatch({ jar: 'a.jar', xmsMb: null, xmxMb: 6144, jvmArgs: '', serverArgs: 'nogui' }),
+    { jar: 'a.jar', xmxMb: 6144, serverArgs: 'nogui' },
+  )
 })

@@ -4,7 +4,7 @@ import { pickFile, pickDirectory, extractArchive, downloadAddTask, downloadProgr
 import { t } from '../i18n.js'
 import FaIcon from './FaIcon.jsx'
 import { resolveRoot, joinPath, newServer } from '../api/state.js'
-import { detectServer, guessMcVersion } from '../api/server.js'
+import { detectServer, guessMcVersion, startPatch } from '../api/server.js'
 import { startServerSetup, watchSetup, readLaunchManifest, readBlockedMods } from '../api/setup.js'
 import { addServerEntry } from '../api/installMode.js'
 
@@ -70,6 +70,8 @@ export default function ImportDialog({ root, onClose, onImported }) {
       dir,
       jar: d.jar,
       mcVersion: guessMcVersion(d.jar) || guessMcVersion(dir),
+      // 整合包自带启动脚本（GTNH startserver*.sh 等）：直接采用其 jar / 内存 / 参数
+      ...startPatch(d.start),
     })
     onImported(server)
     showToast(t('import.done', { name: srvName, jar: d.jar }), 'success')

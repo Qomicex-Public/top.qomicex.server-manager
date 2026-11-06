@@ -92,6 +92,7 @@
   "settings.jar": "Server jar (relative to directory)",
   "settings.redetect": "Redetect",
   "settings.jarDetected": "Detected {n} jars, selected {jar}",
+  "settings.startScriptDetected": "Detected start script {script}, using {jar} and its memory settings",
   "settings.mcVersion": "Minecraft version",
   "settings.mcVersionPlaceholder": "e.g. 1.21.4 (used to pick Java)",
   "settings.java": "Java runtime",

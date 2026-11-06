@@ -11,9 +11,9 @@
   - 插件页「导入服务端 → 整合包开服」：本地 .zip（CurseForge 结构）/ .mrpack（Modrinth 结构）
   - 插件侧完整管线：解析包 → 装服务端运行时（Forge/NeoForge 先预填 `libraries/` 再执行 `--installServer`；Fabric 下 server-launcher；原版下 server.jar）→ 批量下载 mods（CurseForge 经元数据代理换直链，分发受限的记入 `.qml-server/blocked-mods.json`）→ `overrides/` 释放（自动剥前缀提到根）→ **client-only 模组自动隔离**到 `mods-client-only/`（不删可恢复）→ 生成 `eula.txt` / `server.properties` / `user_jvm_args.txt`
   - 进度经 `task.register/update/complete` 上报，与启动器下载中心的分步卡片同步可见
-- **导入服务端**：本地 zip（pickFile + 解压）/ URL 下载（走启动器下载器）/ 注册已有目录；自动检测服务端 jar 与 MC 版本
+- **导入服务端**：本地 zip（pickFile + 解压）/ URL 下载（走启动器下载器）/ 注册已有目录；自动检测服务端 jar 与 MC 版本；**整合包自带启动脚本**（GTNH `startserver*.sh`、Forge `run.bat` 等根目录脚本）会被解析，直接采用其中的 jar / `-Xms` / `-Xmx` / JVM 参数，省去手填
 - **一键启动/停止**：自动按 MC 版本选 Java（也可手动指定/添加自定义 Java/校验）；argfile 模式（forge/neo 1.17+）按 `launch.json` 组装 `java @args`；停止优先向控制台发 `stop` 优雅退出，30s 超时才强杀进程树
-- **实时控制台**：stdout/stderr 游标增量流、等级着色、搜索、自动滚动、**命令输入**（`list` / `say` / `stop`…，支持 ↑↓ 历史）
+- **实时控制台**：stdout/stderr 游标增量流、等级着色（ERROR 红 / WARN 琥珀黄 / INFO 前景色 / DEBUG 暗）、搜索、自动滚动、**命令输入**（`list` / `say` / `stop`…，支持 ↑↓ 历史）
 - **配置管理**：server.properties 常用项表单 + 完整 raw 编辑（无损保留注释）
 - **白名单**：whitelist.json 编辑 + 按玩家名经 Mojang API 查 UUID（正版服；离线服提供手填 UUID 高级模式）
 - **EULA 流程**：首次启动弹窗展示协议要求 + 跳转 EULA 网站 + 8 秒倒计时确认
