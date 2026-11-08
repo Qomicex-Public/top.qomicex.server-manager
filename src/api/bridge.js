@@ -44,6 +44,8 @@ export const extractArchive = (archivePath, destPath, options) => need().call('e
 export const renamePath = (from, to) => need().call('renamePath', from, to)
 export const readArchiveEntry = (archivePath, entryPath, options) => need().call('readArchiveEntry', archivePath, entryPath, options)
 export const deleteFile = (path) => need().call('deleteFile', path)
+/** 删除目录（recursive 时连同内容一起）。返回 { path, removed }。 */
+export const deleteDir = (path, options) => need().call('deleteDir', path, options)
 export const writeBytes = (path, bytes) => need().call('writeBytes', path, bytes)
 export const taskRegister = (options) => need().call('task.register', options)
 export const taskUpdate = (taskId, patch) => need().call('task.update', taskId, patch)

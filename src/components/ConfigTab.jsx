@@ -7,12 +7,18 @@ import { serverFilePath } from '../api/server.js'
 import { parseProps, serializeProps, getProp, setProp, COMMON_FIELDS, DEFAULT_PROPS_TEXT } from '../api/props.js'
 import WhitelistEditor from './WhitelistEditor.jsx'
 
-export default function ConfigTab({ server }) {
+export default function ConfigTab({ server, onDirty }) {
   const [parsed, setParsed] = useState(null)
   const [raw, setRaw] = useState('')
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  // 白名单编辑器也有自己的未保存状态：两者任一脏就算脏
+  const [whitelistDirty, setWhitelistDirty] = useState(false)
+  const anyDirty = dirty || whitelistDirty
+  // 上报给 ServerDetail：未保存改动只在内存，切页/切服就丢（后端文件没变）
+  useEffect(() => { onDirty?.(anyDirty) }, [anyDirty, onDirty])
+  useEffect(() => () => onDirty?.(false), [onDirty])
 
   const propsPath = useMemo(() => serverFilePath(server, 'server.properties'), [server.dir])
 
@@ -106,15 +112,23 @@ export default function ConfigTab({ server }) {
         </CardContent>
       </Card>
 
-      <WhitelistEditor server={server} />
+      <WhitelistEditor server={server} onDirty={setWhitelistDirty} />
 
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0">
           <CardTitle className="text-sm">{t('config.raw')}</CardTitle>
-          <Button size="sm" disabled={!dirty || saving} onClick={() => void save()}>
-            <FaIcon cls="fa-solid fa-save" className="h-3.5 w-3.5" />
-            {saving ? t('config.saving') : `${t('config.save')}${dirty ? ' *' : ''}`}
-          </Button>
+          <div className="flex items-center gap-2">
+            {anyDirty && (
+              <span className="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+                <FaIcon cls="fa-solid fa-circle-exclamation" className="h-3.5 w-3.5" />
+                {t('unsaved.field')}
+              </span>
+            )}
+            <Button size="sm" disabled={!dirty || saving} onClick={() => void save()}>
+              <FaIcon cls="fa-solid fa-save" className="h-3.5 w-3.5" />
+              {saving ? t('config.saving') : t('config.save')}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Textarea

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, SelectOption } from '@qomicex/plugin-ui'
 import { showToast, pickFile } from '../api/bridge.js'
 import { t } from '../i18n.js'
@@ -7,12 +7,29 @@ import { listJavas, recommendJava, addCustomJava, validateJava } from '../api/ja
 import { detectServer, guessMcVersion, startPatch } from '../api/server.js'
 import { newServer } from '../api/state.js'
 
-export default function SettingsTab({ server, onSave }) {
+/** 参与脏判定的字段：只比这些持久化字段，忽略 draft 里可能带上的临时字段。 */
+const TRACKED_KEYS = ['name', 'dir', 'jar', 'mcVersion', 'javaPath', 'xmxMb', 'xmsMb', 'jvmArgs', 'serverArgs']
+
+function shallowEqualDraft(a, b) {
+  for (const k of TRACKED_KEYS) {
+    const av = a?.[k] ?? null
+    const bv = b?.[k] ?? null
+    if (av !== bv) return false
+  }
+  return true
+}
+
+export default function SettingsTab({ server, onSave, onDirty }) {
   const [draft, setDraft] = useState(server)
   const [javas, setJavas] = useState(null)
   const [customPath, setCustomPath] = useState('')
   const [testing, setTesting] = useState(false)
   const [jarCandidates, setJarCandidates] = useState(null)
+  // 这些字段只在保存时才写进插件设置；不保存就切走等于改动丢失（常见困惑点）
+  const dirty = useMemo(() => !shallowEqualDraft(draft, server), [draft, server])
+
+  useEffect(() => { onDirty?.(dirty) }, [dirty, onDirty])
+  useEffect(() => () => onDirty?.(false), [onDirty])
 
   useEffect(() => { setDraft(server) }, [server])
 
@@ -90,7 +107,19 @@ export default function SettingsTab({ server, onSave }) {
     finally { setTesting(false) }
   }
 
-  const save = () => { onSave(draft); showToast(t('toast.saved'), 'success') }
+  const [saving, setSaving] = useState(false)
+  const save = async () => {
+    setSaving(true)
+    try {
+      await onSave(draft)
+      // 说明生效时机：这些是启动参数，只有下次启动服务端才读新值
+      showToast(t('settings.savedHint'), 'success')
+    } catch (e) {
+      showToast(t('toast.settingsSaveFailed', { msg: e.message }), 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="max-w-[980px] space-y-4">
@@ -184,10 +213,16 @@ export default function SettingsTab({ server, onSave }) {
           </div>
         </CardContent>
       </Card>
-      <div className="flex justify-end">
-        <Button onClick={save}>
+      <div className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-border bg-background/95 py-3 backdrop-blur">
+        {dirty && (
+          <span className="mr-auto flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+            <FaIcon cls="fa-solid fa-circle-exclamation" className="h-3.5 w-3.5" />
+            {t('unsaved.field')}
+          </span>
+        )}
+        <Button disabled={!dirty || saving} onClick={() => void save()}>
           <FaIcon cls="fa-solid fa-save" className="h-4 w-4" />
-          {t('settings.save')}
+          {saving ? t('config.saving') : t('settings.save')}
         </Button>
       </div>
     </div>

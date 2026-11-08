@@ -8,7 +8,7 @@ import { serverFilePath } from '../api/server.js'
 // 白名单管理：whitelist.json 编辑 + 按玩家名经 Mojang API 查 UUID。
 // 正版服可直接使用；离线服（online-mode=false）的 UUID 是离线算法，
 // Mojang 查询结果不可用 —— 此场景请手填 UUID（高级模式）。
-export default function WhitelistEditor({ server }) {
+export default function WhitelistEditor({ server, onDirty }) {
   const [list, setList] = useState(null) // null=加载中, []=空
   const [name, setName] = useState('')
   const [adding, setAdding] = useState(false)
@@ -16,6 +16,9 @@ export default function WhitelistEditor({ server }) {
   const [manualName, setManualName] = useState('')
   const [showManual, setShowManual] = useState(false)
   const [dirty, setDirty] = useState(false)
+  // 白名单同样只在点保存时写盘；上报给上层做未保存提示与切换拦截
+  useEffect(() => { onDirty?.(dirty) }, [dirty, onDirty])
+  useEffect(() => () => onDirty?.(false), [onDirty])
 
   const path = serverFilePath(server, 'whitelist.json')
 
@@ -110,7 +113,7 @@ export default function WhitelistEditor({ server }) {
           </Button>
           <Button size="sm" disabled={!dirty} onClick={() => void save()}>
             <FaIcon cls="fa-solid fa-save" className="h-3.5 w-3.5" />
-            {t('whitelist.save')}{dirty ? ' *' : ''}
+            {t('whitelist.save')}
           </Button>
         </div>
       </CardHeader>

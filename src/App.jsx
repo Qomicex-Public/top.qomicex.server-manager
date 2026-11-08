@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Button } from '@qomicex/plugin-ui'
+import { Button, useMessageBox } from '@qomicex/plugin-ui'
 import { apiAvailable, showToast, log, onLauncherExit, callBackend, sendNotification, writeText, getSettings, taskProgress } from './api/bridge.js'
 import { registerInstallModeHandler, finalizeSetupEntry, markSetupFailed } from './api/installMode.js'
 import { t, useT } from './i18n.js'
 import FaIcon from './components/FaIcon.jsx'
 import { loadState, saveServers, saveRoot, resolveRoot } from './api/state.js'
+import { deleteServerFiles, describeDeleteResult } from './api/cleanup.js'
 import { spawnServer, watchLogs, stdin, kill as killProcess, alive as aliveProcess } from './api/process.js'
 import { resolveJava } from './api/java.js'
 import { readEulaState, serverFilePath } from './api/server.js'
@@ -12,17 +13,23 @@ import ServerList from './components/ServerList.jsx'
 import ServerDetail from './components/ServerDetail.jsx'
 import ImportDialog from './components/ImportDialog.jsx'
 import EulaGate from './components/EulaGate.jsx'
+import RemoveServerDialog from './components/RemoveServerDialog.jsx'
 
 const MAX_LOG_LINES = 4000
 
 export default function App() {
   useT() // 语言切换时整树重渲染（t 的词条来自 getPluginStrings）
+  const { confirm } = useMessageBox()
   const [ready, setReady] = useState(false)
   const [servers, setServers] = useState([])
   const [root, setRoot] = useState(null)
   const [selectedId, setSelectedId] = useState(null)
   const [importOpen, setImportOpen] = useState(false)
   const [eulaPending, setEulaPending] = useState(null) // { server, javaPath }
+  const [removePending, setRemovePending] = useState(null) // server 对象
+  // 各标签页是否有未保存修改：serverId -> Set<tabId>。用于切页/切服/移除前拦截，
+  // 避免用户改完配置直接切走，以为已生效（后端文件其实没动）。
+  const [dirtyTabs, setDirtyTabs] = useState({})
   // serverId -> { pid, status: 'starting'|'running'|'stopping'|'stopped', startedAtMs, exitCode }
   const [runtime, setRuntime] = useState({})
   const [logs, setLogs] = useState({}) // serverId -> [{ seq, stream, text }]
@@ -183,16 +190,93 @@ export default function App() {
     }
   }, [])
 
-  const deleteServer = useCallback(async (server) => {
+  /** 记录某服务器某标签页是否有未保存修改。 */
+  const setTabDirty = useCallback((serverId, tabId, dirty) => {
+    setDirtyTabs(prev => {
+      const cur = prev[serverId] || {}
+      if (!!cur[tabId] === !!dirty) return prev
+      const nextTabs = { ...cur, [tabId]: !!dirty }
+      if (!dirty) delete nextTabs[tabId]
+      const next = { ...prev }
+      if (Object.keys(nextTabs).length === 0) delete next[serverId]
+      else next[serverId] = nextTabs
+      return next
+    })
+  }, [])
+
+  const clearDirty = useCallback((serverId) => {
+    setDirtyTabs(prev => {
+      if (!prev[serverId]) return prev
+      const next = { ...prev }
+      delete next[serverId]
+      return next
+    })
+  }, [])
+
+  const hasUnsaved = useCallback((serverId) => !!dirtyTabs[serverId], [dirtyTabs])
+
+  /** 切服务器前拦一下：有未保存修改就确认（切走后组件卸载，改动直接丢）。 */
+  const requestSwitchServer = useCallback((nextId) => {
+    if (!selectedId || selectedId === nextId || !hasUnsaved(selectedId)) {
+      setSelectedId(nextId)
+      return
+    }
+    void (async () => {
+      const ok = await confirm(t('unsaved.switchConfirm'), t('unsaved.title'))
+      if (ok) {
+        clearDirty(selectedId)
+        setSelectedId(nextId)
+      }
+    })()
+  }, [clearDirty, confirm, hasUnsaved, selectedId])
+
+  /** 打开移除确认框（运行时先拦下：必须先停服）。 */
+  const requestRemove = useCallback((server) => {
     const rt = runtimeRef.current[server.id]
     if (rt && rt.status === 'running') {
       showToast(t('toast.stopWhileRunning'), 'error')
       return
     }
+    if (hasUnsaved(server.id)) {
+      void (async () => {
+        const ok = await confirm(t('unsaved.removeConfirm'), t('unsaved.title'))
+        if (!ok) return
+        clearDirty(server.id)
+        setRemovePending(server)
+      })()
+      return
+    }
+    setRemovePending(server)
+  }, [clearDirty, confirm, hasUnsaved])
+
+  /** 确认后真正执行：可选连文件一起删。 */
+  const deleteServer = useCallback(async (server, { deleteFiles = false } = {}) => {
     if (watchersRef.current[server.id]) watchersRef.current[server.id].stop()
+
+    // 先摘条目再删文件：即使删文件中途失败/中断，列表也不会留下指向半删目录的条目
     const next = servers.filter(s => s.id !== server.id)
     await persistServers(next)
     if (selectedId === server.id) setSelectedId(null)
+    setRemovePending(null)
+
+    if (!deleteFiles) {
+      showToast(t('toast.removedKeepFiles', { name: server.name }), 'success')
+      return
+    }
+
+    showToast(t('toast.deletingFiles', { name: server.name }), 'info')
+    const result = await deleteServerFiles(server.dir)
+    log(`删除服务端 ${server.dir}: removed=${result.removed}${result.refused ? ' refused' : ''}${result.error ? ` error=${result.error}` : ''}`)
+
+    if (result.refused) {
+      // 安全策略拒绝：条目已摘掉，但文件一个没删 —— 必须说清楚，别让用户以为删干净了
+      showToast(result.refused, 'error')
+      log(`拒绝删除 ${server.dir}：${result.refused}`, 'warn')
+    } else if (result.error) {
+      showToast(describeDeleteResult(result), 'error')
+    } else {
+      showToast(describeDeleteResult(result), 'success')
+    }
   }, [persistServers, selectedId, servers])
 
   const updateServer = useCallback(async (updated) => {
@@ -296,12 +380,13 @@ export default function App() {
           runtime={runtime}
           selectedId={selectedId}
           root={root}
-          onSelect={setSelectedId}
+          onSelect={requestSwitchServer}
+          dirtyIds={Object.keys(dirtyTabs)}
           onImport={() => setImportOpen(true)}
           onChangeRoot={async (r) => { setRoot(r); await saveRoot(r) }}
           onStart={startServer}
           onStop={stopServer}
-          onDelete={deleteServer}
+          onDelete={requestRemove}
         />
       </div>
       <div className="min-w-0 flex-1">
@@ -318,7 +403,9 @@ export default function App() {
             onCommand={(text) => void sendCommand(selected, text)}
             onSave={updateServer}
             onOpenFolder={() => void openFolder(selected)}
-            onDelete={() => void deleteServer(selected)}
+            onDelete={() => requestRemove(selected)}
+            onDirtyChange={(tabId, dirty) => setTabDirty(selected.id, tabId, dirty)}
+            onSwitchServer={(nextId) => requestSwitchServer(nextId)}
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground">
@@ -346,6 +433,14 @@ export default function App() {
           serverName={eulaPending.server.name}
           onAgree={() => void confirmEulaAndStart()}
           onCancel={() => { setEulaPending(null); updateRuntime(eulaPending.server.id, { status: 'stopped' }) }}
+        />
+      )}
+      {removePending && (
+        <RemoveServerDialog
+          server={removePending}
+          running={runtimeRef.current[removePending.id]?.status === 'running'}
+          onCancel={() => setRemovePending(null)}
+          onConfirm={({ deleteFiles }) => deleteServer(removePending, { deleteFiles })}
         />
       )}
     </div>

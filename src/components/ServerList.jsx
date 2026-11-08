@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Badge, Button, Tooltip, useMessageBox } from '@qomicex/plugin-ui'
+import { Badge, Button, Tooltip } from '@qomicex/plugin-ui'
 import { pickDirectory } from '../api/bridge.js'
 import { t } from '../i18n.js'
 import FaIcon from './FaIcon.jsx'
@@ -11,9 +11,8 @@ function StatusDot({ status }) {
   return <span className={`sm-dot ${cls}`} />
 }
 
-export default function ServerList({ servers, runtime, selectedId, root, onSelect, onImport, onChangeRoot, onStart, onStop, onDelete }) {
+export default function ServerList({ servers, runtime, selectedId, root, dirtyIds = [], onSelect, onImport, onChangeRoot, onStart, onStop, onDelete }) {
   const [changingRoot, setChangingRoot] = useState(false)
-  const { confirm } = useMessageBox()
 
   const changeRoot = async () => {
     setChangingRoot(true)
@@ -25,10 +24,8 @@ export default function ServerList({ servers, runtime, selectedId, root, onSelec
     }
   }
 
-  const removeServer = async (server) => {
-    const ok = await confirm(t('list.removeConfirm', { name: server.name }), t('list.remove'))
-    if (ok) onDelete(server)
-  }
+  // 确认交给上层统一的 RemoveServerDialog（含「同时删除文件」选项与本路径不可恢复警告）
+  const removeServer = (server) => onDelete(server)
 
   return (
     <div className="flex h-full flex-col">
@@ -60,6 +57,11 @@ export default function ServerList({ servers, runtime, selectedId, root, onSelec
                 {s.mcVersion && (
                   <Badge variant="secondary" className="shrink-0 px-2 py-0 text-[11px] font-normal">
                     {s.mcVersion}
+                  </Badge>
+                )}
+                {dirtyIds.includes(s.id) && (
+                  <Badge variant="outline" className="shrink-0 px-2 py-0 text-[11px] font-normal text-amber-600 dark:text-amber-400">
+                    {t('unsaved.short')}
                   </Badge>
                 )}
                 {s.status === 'setting-up' && (

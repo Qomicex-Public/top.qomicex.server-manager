@@ -14,10 +14,12 @@ const TAB_ICONS = {
   settings: <FaIcon cls="fa-solid fa-gear" className="h-3.5 w-3.5" />,
 }
 
-export default function ServerDetail({ server, runtime, logs, onClearLogs, onStart, onStop, onRestart, onCommand, onSave, onOpenFolder, onDelete }) {
+export default function ServerDetail({ server, runtime, logs, onClearLogs, onStart, onStop, onRestart, onCommand, onSave, onOpenFolder, onDelete, onDirtyChange }) {
   const [tab, setTab] = useState('console')
   const [eulaState, setEulaState] = useState('unknown')
   const [eulaText, setEulaText] = useState('')
+  // 各标签页自身的未保存状态（由子组件通过 onDirty 上报）
+  const [tabDirty, setTabDirty] = useState({})
   const { confirm } = useMessageBox()
 
   useEffect(() => {
@@ -33,6 +35,19 @@ export default function ServerDetail({ server, runtime, logs, onClearLogs, onSta
     return () => { cancelled = true }
   }, [server.dir, runtime.status])
 
+  const markDirty = React.useCallback((tabId, dirty) => {
+    setTabDirty(prev => {
+      if (!!prev[tabId] === !!dirty) return prev
+      const next = { ...prev, [tabId]: !!dirty }
+      if (!dirty) delete next[tabId]
+      return next
+    })
+    onDirtyChange?.(tabId, dirty)
+  }, [onDirtyChange])
+
+  const dirtyTabsCount = Object.values(tabDirty).filter(Boolean).length
+  const anyDirty = dirtyTabsCount > 0
+
   const statusKey = { running: 'detail.running', starting: 'detail.starting', stopping: 'detail.stopping' }[runtime.status] || 'detail.stopped'
   const eulaKey = { accepted: 'detail.eulaAccepted', rejected: 'detail.eulaRejected', missing: 'detail.eulaMissing', unknown: 'detail.eulaReading' }[eulaState]
   const isRunning = runtime.status === 'running' || runtime.status === 'starting'
@@ -42,10 +57,8 @@ export default function ServerDetail({ server, runtime, logs, onClearLogs, onSta
     if (ok) onStop(true)
   }
 
-  const removeServer = async () => {
-    const ok = await confirm(t('list.removeConfirm', { name: server.name }), t('detail.remove'))
-    if (ok) onDelete()
-  }
+  // 确认交给上层统一的 RemoveServerDialog（含「同时删除文件」选项与本路径不可恢复警告）
+  const removeServer = () => onDelete()
 
   return (
     <div className="flex h-full flex-col overflow-hidden px-4">
@@ -106,15 +119,22 @@ export default function ServerDetail({ server, runtime, logs, onClearLogs, onSta
         activeTab={tab}
         onChange={setTab}
       />
+      {/* 未保存提示必须显眼：改动只在内存里，切页/切服/关窗口都会丢，后端文件没变 */}
+      {anyDirty && (
+        <div className="mt-2 flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+          <FaIcon cls="fa-solid fa-triangle-exclamation" className="h-3.5 w-3.5" />
+          <span className="font-medium">{t('unsaved.banner')}</span>
+          <span className="text-muted-foreground">{t('unsaved.bannerHint')}</span>
+        </div>
+      )}
       <div className="mb-3 mt-2 h-px bg-border" />
       <div className="min-h-0 flex-1 overflow-y-auto pb-4">
         {tab === 'console' && (
           <ConsoleView server={server} runtime={runtime} logs={logs} onClearLogs={onClearLogs} onCommand={onCommand} />
         )}
-        {tab === 'config' && <ConfigTab server={server} />}
-        {tab === 'settings' && <SettingsTab server={server} onSave={onSave} />}
+        {tab === 'config' && <ConfigTab server={server} onDirty={dirty => markDirty('config', dirty)} />}
+        {tab === 'settings' && <SettingsTab server={server} onSave={onSave} onDirty={dirty => markDirty('settings', dirty)} />}
       </div>
     </div>
   )
 }
-
