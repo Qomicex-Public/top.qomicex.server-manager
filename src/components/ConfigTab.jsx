@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, SelectOption, Separator, Switch } from '@qomicex/plugin-ui'
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, SelectOption, Switch, Textarea } from '@qomicex/plugin-ui'
 import { readText, writeText, showToast } from '../api/bridge.js'
 import { t } from '../i18n.js'
 import FaIcon from './FaIcon.jsx'
@@ -69,7 +69,7 @@ export default function ConfigTab({ server }) {
 
   return (
     <div className="max-w-[980px] space-y-4">
-      {error && <div className="rounded-lg border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">{error}</div>}
+      {error && <div className="p-alert p-alert--warn text-xs">{error}</div>}
 
       <Card>
         <CardHeader><CardTitle className="text-sm">{t('config.common')}</CardTitle></CardHeader>
@@ -112,13 +112,13 @@ export default function ConfigTab({ server }) {
         <CardHeader className="flex-row items-center justify-between space-y-0">
           <CardTitle className="text-sm">{t('config.raw')}</CardTitle>
           <Button size="sm" disabled={!dirty || saving} onClick={() => void save()}>
-            <FaIcon cls="fa-solid fa-floppy-disk" className="h-3.5 w-3.5" />
+            <FaIcon cls="fa-solid fa-save" className="h-3.5 w-3.5" />
             {saving ? t('config.saving') : `${t('config.save')}${dirty ? ' *' : ''}`}
           </Button>
         </CardHeader>
         <CardContent>
-          <textarea
-            className="h-64 w-full resize-y rounded-md border border-input bg-background px-2.5 py-2 font-mono text-[12.5px] text-foreground outline-none focus:border-ring"
+          <Textarea
+            className="h-64 resize-y font-mono text-[12.5px]"
             spellCheck={false}
             value={raw}
             onChange={e => applyRaw(e.target.value)}

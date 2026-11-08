@@ -4,7 +4,7 @@ import { apiAvailable, showToast, log, onLauncherExit, callBackend, sendNotifica
 import { registerInstallModeHandler, finalizeSetupEntry, markSetupFailed } from './api/installMode.js'
 import { t, useT } from './i18n.js'
 import FaIcon from './components/FaIcon.jsx'
-import { loadState, saveServers, saveRoot, resolveRoot, newServer } from './api/state.js'
+import { loadState, saveServers, saveRoot, resolveRoot } from './api/state.js'
 import { spawnServer, watchLogs, stdin, kill as killProcess, alive as aliveProcess } from './api/process.js'
 import { resolveJava } from './api/java.js'
 import { readEulaState, serverFilePath } from './api/server.js'

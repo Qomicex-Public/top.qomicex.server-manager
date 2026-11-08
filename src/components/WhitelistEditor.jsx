@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@qomicex/plugin-ui'
+import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '@qomicex/plugin-ui'
 import { readText, writeText, showToast, proxyFetch, getCache, setCache } from '../api/bridge.js'
 import { t } from '../i18n.js'
 import FaIcon from './FaIcon.jsx'
@@ -71,7 +71,7 @@ export default function WhitelistEditor({ server }) {
       }
       setName('')
     } catch (err) {
-      showToast(t('whitelist.addFailed', { msg: err.message }), 'error')
+      showToast(t('toast.opFailed', { msg: err.message }), 'error')
     } finally {
       setAdding(false)
     }
@@ -93,7 +93,7 @@ export default function WhitelistEditor({ server }) {
       setDirty(false)
       showToast(t('whitelist.saved'), 'success')
     } catch (e) {
-      showToast(t('whitelist.addFailed', { msg: e.message }), 'error')
+      showToast(t('toast.opFailed', { msg: e.message }), 'error')
     }
   }
 
@@ -105,11 +105,11 @@ export default function WhitelistEditor({ server }) {
         <CardTitle className="text-sm">{t('whitelist.title')}</CardTitle>
         <div className="flex gap-2">
           <Button size="sm" variant="ghost" onClick={() => setShowManual(v => !v)}>
-            {showManual ? <FaIcon cls="fa-solid fa-chevron-up" className="h-3.5 w-3.5" /> : <FaIcon cls="fa-solid fa-keyboard" className="h-3.5 w-3.5" />}
+            {showManual ? <FaIcon cls="fa-solid fa-chevron-up" className="h-3.5 w-3.5" /> : <FaIcon cls="fa-solid fa-pen-to-square" className="h-3.5 w-3.5" />}
             {showManual ? t('whitelist.manualHide') : t('whitelist.manual')}
           </Button>
           <Button size="sm" disabled={!dirty} onClick={() => void save()}>
-            <FaIcon cls="fa-solid fa-floppy-disk" className="h-3.5 w-3.5" />
+            <FaIcon cls="fa-solid fa-save" className="h-3.5 w-3.5" />
             {t('whitelist.save')}{dirty ? ' *' : ''}
           </Button>
         </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Input } from '@qomicex/plugin-ui'
+import { Button, Checkbox, Input } from '@qomicex/plugin-ui'
 import { t } from '../i18n.js'
 import FaIcon from './FaIcon.jsx'
 
@@ -91,27 +91,32 @@ export default function ConsoleView({ server, runtime, logs, onClearLogs, onComm
 
   return (
     <div className="flex h-full flex-col gap-2">
-      <div className="flex items-center gap-2.5">
+      <div className="flex flex-wrap items-center gap-2.5">
         <div className="w-56">
           <Input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('console.search')} />
         </div>
         <div className="flex gap-0.5">
           {LEVELS.map(([id, key]) => (
-            <button
+            <Button
               key={id}
               type="button"
-              className={`rounded-full border px-2.5 py-0.5 text-xs transition-colors ${levelFilter === id ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+              size="sm"
+              variant={levelFilter === id ? 'secondary' : 'ghost'}
+              className="h-7 rounded-full px-2.5 text-xs"
               onClick={() => setLevelFilter(id)}
             >
               {t(key)}
-            </button>
+            </Button>
           ))}
         </div>
         <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
-          <input type="checkbox" checked={autoScroll} onChange={e => setAutoScroll(e.target.checked)} />
+          <Checkbox checked={autoScroll} onCheckedChange={v => setAutoScroll(v === true)} />
           {t('console.autoScroll')}
         </label>
-        <Button size="sm" variant="ghost" onClick={onClearLogs}>{t('console.clear')}</Button>
+        <Button size="sm" variant="ghost" onClick={onClearLogs}>
+          <FaIcon cls="fa-solid fa-trash" className="h-3.5 w-3.5" />
+          {t('console.clear')}
+        </Button>
         <span className="ml-auto text-xs text-muted-foreground">{t('console.lines', { n: filtered.length })}</span>
       </div>
       <div className={`sm-console-box min-h-0 flex-1 ${runtime.status === 'running' ? '' : 'paused'}`} ref={boxRef} onKeyDown={onKeyDownBox} tabIndex={0}>
@@ -137,7 +142,7 @@ export default function ConsoleView({ server, runtime, logs, onClearLogs, onComm
             onKeyDown={onKey}
           />
         </div>
-        <Button type="button" disabled={runtime.status !== 'running' || !command.trim()} onClick={submit}>
+        <Button type="submit" disabled={runtime.status !== 'running' || !command.trim()}>
           <FaIcon cls="fa-solid fa-paper-plane" className="h-4 w-4" />
           {t('console.send')}
         </Button>

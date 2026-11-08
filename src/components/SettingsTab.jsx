@@ -17,7 +17,7 @@ export default function SettingsTab({ server, onSave }) {
   useEffect(() => { setDraft(server) }, [server])
 
   const loadJavas = async () => {
-    try { setJavas(await listJavas()) } catch (e) { setJavas([]); showToast(t('whitelist.addFailed', { msg: e.message }), 'error') }
+    try { setJavas(await listJavas()) } catch (e) { setJavas([]); showToast(t('toast.opFailed', { msg: e.message }), 'error') }
   }
   useEffect(() => { void loadJavas() }, [])
 
@@ -48,7 +48,7 @@ export default function SettingsTab({ server, onSave }) {
         'info',
       )
     } catch (e) {
-      showToast(t('whitelist.addFailed', { msg: e.message }), 'error')
+      showToast(t('toast.opFailed', { msg: e.message }), 'error')
     }
   }
 
@@ -60,7 +60,7 @@ export default function SettingsTab({ server, onSave }) {
         set({ javaPath: rec.path })
         showToast(t('settings.javaValid', { name: rec.name || rec.path, major: rec.majorVersion }), 'success')
       } else showToast(t('toast.noJava'), 'error')
-    } catch (e) { showToast(t('whitelist.addFailed', { msg: e.message }), 'error') }
+    } catch (e) { showToast(t('toast.opFailed', { msg: e.message }), 'error') }
   }
 
   const addCustom = async () => {
@@ -70,7 +70,7 @@ export default function SettingsTab({ server, onSave }) {
       showToast(t('toast.saved'), 'success')
       await loadJavas()
       set({ javaPath: customPath.trim() })
-    } catch (e) { showToast(t('whitelist.addFailed', { msg: e.message }), 'error') }
+    } catch (e) { showToast(t('toast.opFailed', { msg: e.message }), 'error') }
   }
 
   const browseJava = async () => {
@@ -85,8 +85,8 @@ export default function SettingsTab({ server, onSave }) {
     try {
       const r = await validateJava(path)
       if (r && r.state === 'Valid') showToast(t('settings.javaValid', { name: r.name, major: r.majorVersion }), 'success')
-      else showToast(t('whitelist.addFailed', { msg: r ? r.state : 'invalid path' }), 'error')
-    } catch (e) { showToast(t('whitelist.addFailed', { msg: e.message }), 'error') }
+      else showToast(t('toast.opFailed', { msg: r ? r.state : 'invalid path' }), 'error')
+    } catch (e) { showToast(t('toast.opFailed', { msg: e.message }), 'error') }
     finally { setTesting(false) }
   }
 
@@ -114,7 +114,7 @@ export default function SettingsTab({ server, onSave }) {
               <Label className="text-xs text-muted-foreground">{t('settings.redetect')}</Label>
               <div className="flex items-center gap-2">
                 <Button size="sm" variant="outline" onClick={() => void autoDetect()}>
-                  <FaIcon cls="fa-solid fa-rotate" className="h-3.5 w-3.5" />
+                  <FaIcon cls="fa-solid fa-rotate-right" className="h-3.5 w-3.5" />
                   {t('settings.redetect')}
                 </Button>
               </div>
@@ -139,8 +139,14 @@ export default function SettingsTab({ server, onSave }) {
                     ))}
                   </Select>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => void recommend()}>{t('settings.javaRecommend')}</Button>
-                <Button size="sm" variant="outline" disabled={testing} onClick={() => void testValidate()}>{testing ? t('settings.javaValidating') : t('settings.javaValidate')}</Button>
+                <Button size="sm" variant="outline" onClick={() => void recommend()}>
+                  <FaIcon cls="fa-solid fa-wand-magic-sparkles" className="h-3.5 w-3.5" />
+                  {t('settings.javaRecommend')}
+                </Button>
+                <Button size="sm" variant="outline" disabled={testing} onClick={() => void testValidate()}>
+                  <FaIcon cls={testing ? 'fa-solid fa-spinner' : 'fa-solid fa-circle-check'} className="h-3.5 w-3.5" />
+                  {testing ? t('settings.javaValidating') : t('settings.javaValidate')}
+                </Button>
               </div>
             </div>
             <div className="col-span-full flex flex-col gap-1.5">
@@ -149,8 +155,14 @@ export default function SettingsTab({ server, onSave }) {
                 <div className="min-w-[280px] flex-1">
                   <Input placeholder={t('settings.javaPathPlaceholder')} value={customPath} onChange={e => setCustomPath(e.target.value)} />
                 </div>
-                <Button size="sm" variant="outline" onClick={() => void browseJava()}>{t('settings.browse')}</Button>
-                <Button size="sm" variant="outline" onClick={() => void addCustom()}>{t('settings.add')}</Button>
+                <Button size="sm" variant="outline" onClick={() => void browseJava()}>
+                  <FaIcon cls="fa-solid fa-folder-open" className="h-3.5 w-3.5" />
+                  {t('settings.browse')}
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => void addCustom()}>
+                  <FaIcon cls="fa-solid fa-plus" className="h-3.5 w-3.5" />
+                  {t('settings.add')}
+                </Button>
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
@@ -174,7 +186,7 @@ export default function SettingsTab({ server, onSave }) {
       </Card>
       <div className="flex justify-end">
         <Button onClick={save}>
-          <FaIcon cls="fa-solid fa-floppy-disk" className="h-4 w-4" />
+          <FaIcon cls="fa-solid fa-save" className="h-4 w-4" />
           {t('settings.save')}
         </Button>
       </div>

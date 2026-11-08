@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Dialog, DialogBody, DialogFooter, DialogHeader, DialogTitle } from '@qomicex/plugin-ui'
+import { openUrl } from '../api/bridge.js'
 import { t } from '../i18n.js'
 import FaIcon from './FaIcon.jsx'
 
@@ -16,18 +17,18 @@ export default function EulaGate({ serverName, onAgree, onCancel }) {
   }, [])
 
   return (
-    <Dialog open>
-      <DialogHeader>
+    <Dialog open onClose={onCancel}>
+      <DialogHeader onClose={onCancel}>
         <DialogTitle className="flex items-center gap-2">
-          <FaIcon cls="fa-solid fa-file-contract" className="h-4 w-4 text-primary" />
+          <FaIcon cls="fa-solid fa-file-lines" className="h-4 w-4 text-primary" />
           {t('eula.title')}
         </DialogTitle>
       </DialogHeader>
       <DialogBody className="space-y-3 text-sm">
         <p>{t('eula.text1', { name: serverName })}</p>
         <p className="text-center">
-          <Button variant="outline" onClick={() => void import('../api/bridge.js').then(m => m.openUrl(EULA_URL))}>
-            <FaIcon cls="fa-solid fa-arrow-up-right-from-square" className="h-4 w-4" />
+          <Button variant="outline" onClick={() => void openUrl(EULA_URL)}>
+            <FaIcon cls="fa-solid fa-external-link-alt" className="h-4 w-4" />
             {t('eula.open')}
           </Button>
         </p>

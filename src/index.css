@@ -27,22 +27,11 @@
 .light .log-warn .sm-log-text { color: hsl(35 90% 34%); }
 .log-dim .sm-log-text { opacity: 0.6; }
 
-/* 进度条（搭建进度） */
-.sm-progress-bar {
-  height: 6px;
-  border-radius: 999px;
-  background: hsl(var(--muted));
-  overflow: hidden;
-}
-.sm-progress-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: hsl(var(--primary));
-  transition: width 0.4s ease;
-}
-
-/* 状态点 */
+/* 状态点（列表行首）。启动器注入的 .p-status-dot 自带 margin-right，
+   与本插件容器的 gap 叠加后横向间距翻倍，故保留私有实现。 */
 .sm-dot { width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; }
 .sm-dot-ok { background: hsl(var(--primary)); }
-.sm-dot-warn { background: hsl(var(--foreground)); opacity: 0.7; }
+/* 启动/停止中用琥珀黄而非半透明前景色：暗色主题下后者只是更白，和停止态分不清 */
+.sm-dot-warn { background: hsl(45 100% 62%); }
+.light .sm-dot-warn { background: hsl(35 90% 40%); }
 .sm-dot-muted { background: hsl(var(--muted-foreground)); opacity: 0.5; }

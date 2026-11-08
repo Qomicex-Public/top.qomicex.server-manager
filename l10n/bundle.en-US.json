@@ -8,6 +8,7 @@
   "list.empty": "No servers yet\nClick Import to add one",
   "list.root": "Root: {path}",
   "list.changeRoot": "Change root",
+  "list.picking": "Selecting…",
   "list.running": "Running",
   "list.starting": "Starting",
   "list.stopping": "Stopping",
@@ -17,6 +18,7 @@
   "list.remove": "Remove",
   "list.removeConfirm": "Remove server \"{name}\"? (server files are not deleted)",
   "list.unnamed": "(unnamed)",
+  "list.settingUp": "Setting up",
   "detail.running": "Running",
   "detail.starting": "Starting",
   "detail.stopping": "Stopping",
@@ -201,5 +203,14 @@
   "setup.errors.noLaunchJar": "No launchable jar found (installer may have failed)",
   "toast.packUnrecognized": "Unrecognized modpack format (no modrinth.index.json or manifest.json)",
   "setup.errors.downloadFailed": "Batch download failed",
-  "setup.misc.prefetchLibs": "Pre-fetching {n} server libraries (mirrored)..."
+  "setup.misc.prefetchLibs": "Pre-fetching {n} server libraries (mirrored)...",
+  "dialog.ok": "OK",
+  "dialog.cancel": "Cancel",
+  "dialog.title.error": "Error",
+  "dialog.title.warning": "Confirm",
+  "dialog.title.success": "Success",
+  "dialog.title.info": "Notice",
+  "dialog.title.input": "Input",
+  "dialog.inputPlaceholder": "Enter…",
+  "toast.opFailed": "Operation failed: {msg}"
 }

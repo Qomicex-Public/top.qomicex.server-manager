@@ -111,6 +111,9 @@ qomicex publish            # 在本插件根目录执行
 - 桥调用统一写成 `getApi()?.call('<方法名>', ...)` 字面形式 —— `qomicex verify` 的权限最小化扫描按 `.call('x')` 文本识别，函数式包装会让扫描失效。
 - 日志流用 `process.logs` 的 seq 游标轮询（800ms）拼装，不需要 SSE。
 - 全部样式使用启动器注入的主题 token（`hsl(var(--*))`）与 `@qomicex/plugin-ui` 组件，自动适配明暗主题；**Tailwind `content` 必须包含 `node_modules/@qomicex/plugin-ui/dist/**/*.js`**，否则组件类名被裁剪、Dialog 等退化为普通块。
+- 图标用 `@qomicex/plugin-ui` 的 `<Glyph>` + 单图标子路径静态导入（`src/components/FaIcon.jsx` 是本地登记表封装）：同步渲染、零 IPC、打包器只留用到的 path（本插件 27 个图标共 75 条 path 数据，无整表冗余）。**不要**自己封装 `getIconSvg` 桥调用——那是旧写法，每个图标一次异步往返，且拼错时没有任何反馈。
+- 图标名必须在启动器内置表内（`src/components/BuiltinIcons.tsx`）。`fa-floppy-disk` / `fa-skull` / `fa-file-zipper` / `fa-keyboard` / `fa-folder-tree` / `fa-puzzle-piece` / `fa-cog` 这类"看起来很像"的名字**都不在表内**，表外类名会渲染成空白。`qomicex verify` / `lint` 会拦成 error 并给出相近建议；需要表外图标时用 `contributes.iconTheme` 自带，或随包附 `.svg`。
+- 确认类交互必须走 `useMessageBox()`（`main.jsx` 已包 `MessageBoxProvider`）：插件 iframe 沙箱是 `allow-scripts allow-forms`，**不含 `allow-modals`**，原生 `window.confirm` 被静默拦截且恒返回 `false`，删除/强杀等按钮会直接失效。
 - 服务端搭建管线写在 `src/api/setup.js`：预填安装器库（`readArchiveEntry` 读内嵌清单 → `download.addBatch` 并发下载）是受限网络下 NeoForge 能装上的关键。
 
 ## 许可证

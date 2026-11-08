@@ -9,12 +9,11 @@ import { startServerSetup, watchSetup, readLaunchManifest, readBlockedMods } fro
 import { addServerEntry } from '../api/installMode.js'
 
 const MODES = [
-  { id: 'zip', label: 'import.mode.zip', icon: 'fa-solid fa-file-zipper' },
-  { id: 'pack', label: 'import.mode.pack', icon: 'fa-solid fa-boxes-packing' },
+  { id: 'zip', label: 'import.mode.zip', icon: 'fa-solid fa-file-lines' },
+  { id: 'pack', label: 'import.mode.pack', icon: 'fa-solid fa-box' },
   { id: 'url', label: 'import.mode.url', icon: 'fa-solid fa-link' },
   { id: 'dir', label: 'import.mode.dir', icon: 'fa-solid fa-folder-open' },
 ]
-
 export default function ImportDialog({ root, onClose, onImported }) {
   const [mode, setMode] = useState('zip')
   const [name, setName] = useState('')
@@ -220,7 +219,10 @@ export default function ImportDialog({ root, onClose, onImported }) {
             <Label className="text-xs text-muted-foreground">{t('import.zipPath')}</Label>
             <div className="flex gap-2">
               <Input value={zipPath} onChange={e => setZipPath(e.target.value)} disabled={busy} />
-              <Button size="sm" variant="outline" onClick={() => void browseZip()} disabled={busy}>{t('import.browse')}</Button>
+              <Button size="sm" variant="outline" onClick={() => void browseZip()} disabled={busy}>
+                <FaIcon cls="fa-solid fa-folder-open" className="h-3.5 w-3.5" />
+                {t('import.browse')}
+              </Button>
             </div>
           </div>
         )}
@@ -229,7 +231,10 @@ export default function ImportDialog({ root, onClose, onImported }) {
             <Label className="text-xs text-muted-foreground">{t('import.packPath')}</Label>
             <div className="flex gap-2">
               <Input value={packPath} onChange={e => setPackPath(e.target.value)} disabled={busy} />
-              <Button size="sm" variant="outline" onClick={() => void browsePack()} disabled={busy}>{t('import.browse')}</Button>
+              <Button size="sm" variant="outline" onClick={() => void browsePack()} disabled={busy}>
+                <FaIcon cls="fa-solid fa-folder-open" className="h-3.5 w-3.5" />
+                {t('import.browse')}
+              </Button>
             </div>
           </div>
         )}
@@ -244,15 +249,18 @@ export default function ImportDialog({ root, onClose, onImported }) {
             <Label className="text-xs text-muted-foreground">{t('import.dirPath')}</Label>
             <div className="flex gap-2">
               <Input value={dirPath} onChange={e => setDirPath(e.target.value)} disabled={busy} />
-              <Button size="sm" variant="outline" onClick={() => void browseDir()} disabled={busy}>{t('import.browse')}</Button>
+              <Button size="sm" variant="outline" onClick={() => void browseDir()} disabled={busy}>
+                <FaIcon cls="fa-solid fa-folder-open" className="h-3.5 w-3.5" />
+                {t('import.browse')}
+              </Button>
             </div>
           </div>
         )}
         <div className="text-xs text-muted-foreground">{t(hint)}</div>
-        {progressText && <div className="rounded-lg border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">{progressText}</div>}
+        {progressText && <div className="p-alert p-alert--info text-xs">{progressText}</div>}
         {setupProgress && (
           <div className="space-y-1.5">
-            <div className="sm-progress-bar"><div className="sm-progress-fill" style={{ width: `${Math.round(setupProgress.percent)}%` }} /></div>
+            <div className="p-progress"><div className="p-progress__bar" style={{ width: `${Math.round(setupProgress.percent)}%` }} /></div>
             <div className="text-xs text-muted-foreground">
               {Math.round(setupProgress.percent)}% · {setupProgress.stage}
               {setupProgress.currentFile && ` · ${setupProgress.currentFile}`}
@@ -263,11 +271,22 @@ export default function ImportDialog({ root, onClose, onImported }) {
       <DialogFooter>
         <Button variant="outline" onClick={onClose} disabled={busy}>{t('import.cancel')}</Button>
         <Button disabled={busy} onClick={() => void doImport()}>
-          {busy
-            ? (mode === 'pack' ? t('import.busyPack') : t('import.busy'))
-            : (mode === 'pack'
-              ? <><FaIcon cls="fa-solid fa-bolt" className="h-4 w-4" />{t('import.confirmPack')}</>
-              : t('import.confirm'))}
+          {busy ? (
+            <>
+              <FaIcon cls="fa-solid fa-spinner" className="h-4 w-4" />
+              {mode === 'pack' ? t('import.busyPack') : t('import.busy')}
+            </>
+          ) : mode === 'pack' ? (
+            <>
+              <FaIcon cls="fa-solid fa-bolt" className="h-4 w-4" />
+              {t('import.confirmPack')}
+            </>
+          ) : (
+            <>
+              <FaIcon cls="fa-solid fa-download" className="h-4 w-4" />
+              {t('import.confirm')}
+            </>
+          )}
         </Button>
       </DialogFooter>
     </Dialog>

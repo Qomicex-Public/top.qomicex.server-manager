@@ -8,6 +8,7 @@
   "list.empty": "暂无服务端\n点击「导入」添加",
   "list.root": "根目录：{path}",
   "list.changeRoot": "更改根目录",
+  "list.picking": "选择中…",
   "list.running": "运行中",
   "list.starting": "启动中",
   "list.stopping": "停止中",
@@ -17,6 +18,7 @@
   "list.remove": "移除",
   "list.removeConfirm": "移除服务端「{name}」？（不会删除服务器文件）",
   "list.unnamed": "(未命名)",
+  "list.settingUp": "搭建中",
   "detail.running": "运行中",
   "detail.starting": "启动中",
   "detail.stopping": "停止中",
@@ -201,5 +203,14 @@
   "setup.errors.noLaunchJar": "未找到可启动的 jar（安装器可能未成功执行）",
   "toast.packUnrecognized": "无法识别整合包格式（既无 modrinth.index.json 也无 manifest.json）",
   "setup.errors.downloadFailed": "批量下载失败",
-  "setup.misc.prefetchLibs": "预下载 {n} 个服务端依赖库（走镜像）..."
+  "setup.misc.prefetchLibs": "预下载 {n} 个服务端依赖库（走镜像）...",
+  "dialog.ok": "确定",
+  "dialog.cancel": "取消",
+  "dialog.title.error": "错误",
+  "dialog.title.warning": "确认",
+  "dialog.title.success": "成功",
+  "dialog.title.info": "提示",
+  "dialog.title.input": "输入",
+  "dialog.inputPlaceholder": "请输入…",
+  "toast.opFailed": "操作失败：{msg}"
 }

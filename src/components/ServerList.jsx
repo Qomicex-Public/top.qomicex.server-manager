@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
-import { Button, Tooltip } from '@qomicex/plugin-ui'
+import { Badge, Button, Tooltip, useMessageBox } from '@qomicex/plugin-ui'
 import { pickDirectory } from '../api/bridge.js'
 import { t } from '../i18n.js'
 import FaIcon from './FaIcon.jsx'
 
+// 状态点走插件自带 .sm-dot（基于主题 token）；启动器 .p-status-dot 自带
+// margin-right 会和容器的 gap 叠加，横向间距翻倍，故不用它。
 function StatusDot({ status }) {
   const cls = { running: 'sm-dot-ok', starting: 'sm-dot-warn', stopping: 'sm-dot-warn' }[status] || 'sm-dot-muted'
   return <span className={`sm-dot ${cls}`} />
@@ -11,11 +13,21 @@ function StatusDot({ status }) {
 
 export default function ServerList({ servers, runtime, selectedId, root, onSelect, onImport, onChangeRoot, onStart, onStop, onDelete }) {
   const [changingRoot, setChangingRoot] = useState(false)
+  const { confirm } = useMessageBox()
 
   const changeRoot = async () => {
-    const dir = await pickDirectory({ title: t('list.changeRoot') })
-    if (dir) await onChangeRoot(dir)
-    setChangingRoot(false)
+    setChangingRoot(true)
+    try {
+      const dir = await pickDirectory({ title: t('list.changeRoot') })
+      if (dir) await onChangeRoot(dir)
+    } finally {
+      setChangingRoot(false)
+    }
+  }
+
+  const removeServer = async (server) => {
+    const ok = await confirm(t('list.removeConfirm', { name: server.name }), t('list.remove'))
+    if (ok) onDelete(server)
   }
 
   return (
@@ -45,13 +57,25 @@ export default function ServerList({ servers, runtime, selectedId, root, onSelec
               <div className="flex items-center gap-2">
                 <StatusDot status={rt.status} />
                 <span className="truncate font-semibold" title={s.name}>{s.name || t('list.unnamed')}</span>
-                {s.mcVersion && <span className="shrink-0 rounded-full bg-muted px-2 py-px text-[11px] text-muted-foreground">{s.mcVersion}</span>}
+                {s.mcVersion && (
+                  <Badge variant="secondary" className="shrink-0 px-2 py-0 text-[11px] font-normal">
+                    {s.mcVersion}
+                  </Badge>
+                )}
+                {s.status === 'setting-up' && (
+                  <Badge variant="outline" className="shrink-0 px-2 py-0 text-[11px] font-normal text-muted-foreground">
+                    {t('list.settingUp')}
+                  </Badge>
+                )}
               </div>
               <div className="mt-1.5 flex items-center justify-between gap-2">
                 <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground" title={s.dir}>{s.jar || s.dir}</span>
                 <span className="flex shrink-0 gap-1.5" onClick={e => e.stopPropagation()}>
                   {running ? (
-                    <Button size="sm" variant="destructive" onClick={() => onStop(s)}>{t('list.stop')}</Button>
+                    <Button size="sm" variant="destructive" onClick={() => onStop(s)}>
+                      <FaIcon cls="fa-solid fa-stop" className="h-3 w-3" />
+                      {t('list.stop')}
+                    </Button>
                   ) : (
                     <Button size="sm" variant="outline" onClick={() => onStart(s)}>
                       <FaIcon cls="fa-solid fa-play" className="h-3 w-3" />
@@ -59,7 +83,7 @@ export default function ServerList({ servers, runtime, selectedId, root, onSelec
                     </Button>
                   )}
                   <Tooltip content={t('list.remove')}>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => { if (window.confirm(t('list.removeConfirm', { name: s.name }))) onDelete(s) }}>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => void removeServer(s)}>
                       <FaIcon cls="fa-solid fa-xmark" className="h-3.5 w-3.5" />
                     </Button>
                   </Tooltip>
@@ -73,9 +97,9 @@ export default function ServerList({ servers, runtime, selectedId, root, onSelec
         <div className="truncate text-xs text-muted-foreground" title={root || ''}>
           {t('list.root', { path: root || '—' })}
         </div>
-        <Button size="sm" variant="ghost" disabled={changingRoot} onClick={() => void changeRoot()}>
-          <FaIcon cls="fa-solid fa-folder-tree" className="h-3.5 w-3.5" />
-          {t('list.changeRoot')}
+        <Button size="sm" variant="ghost" className="w-full justify-start" disabled={changingRoot} onClick={() => void changeRoot()}>
+          <FaIcon cls="fa-solid fa-folder-open" className="h-3.5 w-3.5" />
+          {changingRoot ? t('list.picking') : t('list.changeRoot')}
         </Button>
       </div>
     </div>
